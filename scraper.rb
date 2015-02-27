@@ -1,5 +1,7 @@
 require 'open-uri'
 
+UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/40.0.2214.111 Chrome/40.0.2214.111 Safari/537.36'
+
 class Scraper
   @user = ''
   @auth = ''
@@ -33,7 +35,7 @@ class Scraper
     return mutual_friends
   end
 
-  #private
+  private
 
   def more_friends(html)
     regex = Regexp.new('<div class="[^"]+" id="m_more_(?:mutual_)?friends"><a href="([^"]+)"><span>[^<]+</span></a></div>')
@@ -42,14 +44,19 @@ class Scraper
   end
 
   def extract_friends(html)
-    regex = Regexp.new('<a href="[^"]+"><span class="[^"]+">([^<]+)</span></a><br />')
-    html.scan(regex).flatten
+    regex = Regexp.new('<a href="([^"]+)"><span class="[^"]+">([^<]+)</span></a><br />')
+    html.scan(regex).map { |f|
+      { :name => f[1],
+        :id   => f[0].match(/\/(?:profile\.php\?id=)?([^?&]+)/)[1]
+      }
+    }
   end
 
   def get_html(url)
+    puts url
     c_user = 'c_user=' + @user
     xs = 'xs=' + @auth
-    open(url, { 'cookie' => [c_user, xs].join(";\s") }).read
+    open(url, { 'cookie' => [c_user, xs].join(";\s"), 'user-agent' => UA }).read
   end
 
 end
