@@ -56,7 +56,11 @@ class Scraper
     puts url
     c_user = 'c_user=' + @user
     xs = 'xs=' + @auth
+  begin
     open(url, { 'cookie' => [c_user, xs].join(";\s"), 'user-agent' => UA }).read
+  rescue
+    return ''
+  end
   end
 
 end
