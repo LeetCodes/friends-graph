@@ -38,13 +38,13 @@ class Scraper
   private
 
   def more_friends(html)
-    regex = Regexp.new('<div class="[^"]+" id="m_more_(?:mutual_)?friends"><a href="([^"]+)"><span>[^<]+</span></a></div>')
+    regex = Regexp.new('id="m_more_(?:mutual_)?friends"><a href="([^"]+)">')
     match = html.match(regex)
     match.nil? ? nil : 'https://mbasic.facebook.com' + match[1].gsub('&amp;', '&')
   end
 
   def extract_friends(html)
-    regex = Regexp.new('<a href="([^"]+)"><span class="[^"]+">([^<]+)</span></a><br />')
+    regex = Regexp.new('/></td><td class="[^"]+"><a class="[^"]+" href="([^"]+)">([^<]+)</a>')
     html.scan(regex).map { |f|
       { :name => f[1],
         :id   => f[0].match(/\/(?:profile\.php\?id=)?([^?&]+)/)[1]
