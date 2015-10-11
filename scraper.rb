@@ -11,8 +11,21 @@ class Scraper
     @auth = auth
   end
 
+  def get_id(username)
+    return username if username.match(/\d+/)
+    get_html("https://mbasic.facebook.com/#{username}/about").match(/block\/confirm\/\?bid=(\d+)/)[1]
+  end
+
+  def get_username(id)
+    return id unless id.match(/^\d+$/)
+    open("https://mbasic.facebook.com/#{id}",
+         { 'cookie' => ["c_user=#{@user}", "xs=#{@auth}"].join(";\s"), 'user-agent' => UA })
+    .base_uri.to_s.match(/https:\/\/mbasic.facebook.com\/([\w.]+)/)[1]
+  end
+
   def get_friends(user_id)
     friends = []
+    user_id = get_id(user_id)
     url = "https://mbasic.facebook.com/profile.php?v=friends&id=#{user_id}&startindex=0"
     loop do
       html = get_html(url)
@@ -25,6 +38,7 @@ class Scraper
 
   def get_mutual_friends(user_id1, user_id2)
     mutual_friends = []
+    user_id1, user_id2 = get_id(user_id1), get_id(user_id2)
     url = "https://mbasic.facebook.com/profile.php?v=friends&mutual=1&id=#{user_id1}&and=#{user_id2}&startindex=0"
     loop do
       html = get_html(url)
@@ -33,6 +47,10 @@ class Scraper
       break if url.nil?
     end
     return mutual_friends
+  end
+
+  def are_friends?(user_one, user_two, common_friend)
+    get_mutual_friends(common_friend, user_one).map{ |f| f[:id] }.member?(get_username(user_two))
   end
 
   private
