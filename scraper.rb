@@ -12,7 +12,7 @@ class Scraper
   end
 
   def get_id(username)
-    return username if username.match(/\d+/)
+    return username if username.match(/^\d+$/)
     get_html("https://mbasic.facebook.com/#{username}/about").match(/block\/confirm\/\?bid=(\d+)/)[1]
   end
 
