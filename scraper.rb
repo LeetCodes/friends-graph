@@ -1,4 +1,5 @@
 require 'open-uri'
+require 'net/http'
 
 UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/40.0.2214.111 Chrome/40.0.2214.111 Safari/537.36'
 
@@ -79,5 +80,15 @@ class Scraper
   end
   end
 
+  def get_head(url)
+    puts "HEAD:\s#{url}"
+    uri = URI url
+    c_user = 'c_user=' + @user
+    xs = 'xs=' + @auth
+    Net::HTTP.start(uri.host, uri.port,
+      :use_ssl => uri.scheme == 'https') do |http|
+      http.head uri.request_uri, { 'cookie' => [c_user, xs].join(";\s"), 'user-agent' => UA }
+    end
+  end
 end
 
