@@ -18,9 +18,7 @@ class Scraper
 
   def get_username(id)
     return id unless id.match(/^\d+$/)
-    open("https://mbasic.facebook.com/#{id}",
-         { 'cookie' => ["c_user=#{@user}", "xs=#{@auth}"].join(";\s"), 'user-agent' => UA })
-    .base_uri.to_s.match(/https:\/\/mbasic.facebook.com\/([\w.]+)/)[1]
+    get_html("https://www.facebook.com/#{id}")[/URL=\/([\w.]+)\?_fb_noscript=1/, 1] || id
   end
 
   def get_friends(user_id)
