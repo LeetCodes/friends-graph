@@ -42,8 +42,7 @@ class PhotosScraper < Scraper
   end
 
   def get_photo_url(id)
-    # XXX: actually downloads the file
-    open("https://www.facebook.com/photo/download/?fbid=#{id}").base_uri.to_s
+    get_head("https://www.facebook.com/photo/download/?fbid=#{id}")['Location']
   end
 
   def get_photo_dl_url(id)
