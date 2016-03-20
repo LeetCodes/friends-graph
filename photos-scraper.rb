@@ -36,13 +36,13 @@ class PhotosScraper < Scraper
   end
 
   def get_uploads_album(user)
-    m = get_html("https://mbasic.facebook.com/profile.php?id=#{get_id(user)}&v=photos")
-    .gsub('&amp;', '&')[/Uploads.*?<a href="(.*?)">See All<\/a>/, 1]
-    "https://mbasic.facebook.com#{m}"
+    id = get_id(user)
+    url = "https://mbasic.facebook.com/#{get_username(user)}/photoset/pb.#{id}/?owner_id=#{id}"
+    return url
   end
 
   def get_photo_url(id)
-    get_head("https://www.facebook.com/photo/download/?fbid=#{id}")['Location']
+    get_head(get_photo_dl_url(id))['Location']
   end
 
   def get_photo_dl_url(id)
