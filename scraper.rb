@@ -1,16 +1,19 @@
 require 'open-uri'
 require 'net/http'
 require 'set'
+require 'json'
 
 class Scraper
   UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/40.0.2214.111 Chrome/40.0.2214.111 Safari/537.36'
+  MUTUAL_FRIENDS_URI = "https://www.facebook.com/ajax/browser/list/mutualfriends/?uid=%s&view=list&location=other&infinitescroll=0&node=%s&start=%d&dpr=1&__user=%s&__a=1&__dyn=%s"
 
   @user = ''
   @auth = ''
 
-  def initialize(user, auth)
+  def initialize(user, auth, dyn)
     @user = user
     @auth = auth
+    @dyn  = dyn
   end
 
   def get_id(username)
@@ -39,12 +42,13 @@ class Scraper
   def get_mutual_friends(user_id1, user_id2)
     mutual_friends = []
     user_id1, user_id2 = get_id(user_id1), get_id(user_id2)
-    url = "https://mbasic.facebook.com/profile.php?v=friends&mutual=1&id=#{user_id1}&and=#{user_id2}&startindex=0"
+    index = 0
     loop do
-      html = get_html(url)
-      mutual_friends += extract_friends(html)
-      url = more_friends(html)
-      break if url.nil?
+      url  = MUTUAL_FRIENDS_URI % [user_id1, user_id2, index, @user, @dyn]
+      html = JSON.parse(get_html(url).sub('for (;;);', ''))['domops'][0][3]['__html']
+      mutual_friends += html.scan(/&quot;eng_tid&quot;:&quot;(\d+)&quot;/).flatten
+      break if html[/See More/].nil?
+      index += 30
     end
     return mutual_friends
   end
