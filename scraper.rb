@@ -1,5 +1,6 @@
 require 'open-uri'
 require 'net/http'
+require 'set'
 
 class Scraper
   UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/40.0.2214.111 Chrome/40.0.2214.111 Safari/537.36'
@@ -46,6 +47,20 @@ class Scraper
       break if url.nil?
     end
     return mutual_friends
+  end
+
+  def get_hidden_friends(initial_friends, user, used_friends = nil)
+    friends = initial_friends.to_set
+    used_friends = used_friends.nil? ? Set.new : used_friends.to_set
+
+    while not friends.subset?(used_friends)
+      (friends - used_friends).each do |friend|
+        used_friends.add(friend)
+        friends += get_mutual_friends(user, friend)
+      end
+    end
+
+    return friends
   end
 
   def are_friends?(user_one, user_two, common_friend)
