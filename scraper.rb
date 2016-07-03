@@ -7,18 +7,16 @@ class Scraper
   UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/40.0.2214.111 Chrome/40.0.2214.111 Safari/537.36'
   MUTUAL_FRIENDS_URI = "https://www.facebook.com/ajax/browser/list/mutualfriends/?uid=%s&view=list&location=other&infinitescroll=0&node=%s&start=%d&dpr=1&__user=%s&__a=1&__dyn=%s"
 
-  @user = ''
-  @auth = ''
-
   def initialize(user, auth, dyn)
     @user = user
     @auth = auth
     @dyn  = dyn
+    @cookies = ["c_user=#{@user}", "xs=#{@auth}"].join(";\s")
   end
 
   def get_id(username)
     return username if username.match(/^\d+$/)
-    get_html("https://mbasic.facebook.com/#{username}/about").match(/block\/confirm\/\?bid=(\d+)/)[1]
+    get_html("https://mbasic.facebook.com/#{username}/about")[/block\/confirm\/\?bid=(\d+)/, 1]
   end
 
   def get_username(id)
@@ -74,9 +72,8 @@ class Scraper
   private
 
   def more_friends(html)
-    regex = Regexp.new('id="m_more_(?:mutual_)?friends"><a href="([^"]+)">')
-    match = html.match(regex)
-    match.nil? ? nil : 'https://mbasic.facebook.com' + match[1].gsub('&amp;', '&')
+    path = html.gsub('&amp;', '&')[/id="m_more_(?:mutual_)?friends"><a href="([^"]+)">/, 1]
+    return "https://mbasic.facebook.com#{path}" unless path.nil?
   end
 
   def extract_friends(html)
@@ -90,10 +87,8 @@ class Scraper
 
   def get_html(url)
     puts url
-    c_user = 'c_user=' + @user
-    xs = 'xs=' + @auth
   begin
-    open(url, { 'cookie' => [c_user, xs].join(";\s"), 'user-agent' => UA }).read
+    open(url, { 'cookie' => @cookies, 'user-agent' => UA }).read
   rescue
     return ''
   end
@@ -102,11 +97,9 @@ class Scraper
   def get_head(url)
     puts "HEAD:\s#{url}"
     uri = URI url
-    c_user = 'c_user=' + @user
-    xs = 'xs=' + @auth
     Net::HTTP.start(uri.host, uri.port,
       :use_ssl => uri.scheme == 'https') do |http|
-      http.head uri.request_uri, { 'cookie' => [c_user, xs].join(";\s"), 'user-agent' => UA }
+      http.head uri.request_uri, { 'cookie' => @cookies, 'user-agent' => UA }
     end
   end
 end

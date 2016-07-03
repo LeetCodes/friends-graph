@@ -10,7 +10,7 @@ def friends_graph(user, cookies)
     }
   end
 
-  friends_of_friends += [{ :name => user[:name], :friends => friends }]
+  friends_of_friends.push({ :name => user[:name], :friends => friends })
 
   edges = friends_of_friends.map do |ff|
     [
